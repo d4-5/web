@@ -1,0 +1,38 @@
+﻿@model Lab1.Models.Loan
+@using Lab1.Models
+
+@{
+    ViewData["Title"] = "Loan Details";
+    var status = Model.ReturnedAt.HasValue
+        ? LoanStatus.Returned
+        : Model.DueAt.Date < DateTime.Today
+            ? LoanStatus.Overdue
+            : LoanStatus.Active;
+}
+
+<h1>Loan Details</h1>
+
+<div>
+    <h4>Loan</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Reader</dt>
+        <dd class="col-sm-9">@Model.Reader?.FullName</dd>
+        <dt class="col-sm-3">Book</dt>
+        <dd class="col-sm-9">@Model.Book?.Title</dd>
+        <dt class="col-sm-3">Issued At</dt>
+        <dd class="col-sm-9">@Model.IssuedAt.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Due At</dt>
+        <dd class="col-sm-9">@Model.DueAt.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Returned At</dt>
+        <dd class="col-sm-9">@Model.ReturnedAt?.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">@status</dd>
+        <dt class="col-sm-3">Notes</dt>
+        <dd class="col-sm-9">@Model.Notes</dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

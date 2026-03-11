@@ -1,0 +1,59 @@
+﻿@model Lab1.Models.Loan
+
+@{
+    ViewData["Title"] = "Edit Loan";
+}
+
+<h1>Edit Loan</h1>
+
+<div class="alert alert-info">
+    Щоб повернути книгу, заповніть поле Returned At.
+</div>
+
+<hr />
+<div class="row">
+    <div class="col-md-7">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="mb-3">
+                <label asp-for="ReaderId" class="form-label">Reader</label>
+                <select asp-for="ReaderId" class="form-select" asp-items="ViewBag.ReaderId"></select>
+                <span asp-validation-for="ReaderId" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="BookId" class="form-label">Book</label>
+                <select asp-for="BookId" class="form-select" asp-items="ViewBag.BookId"></select>
+                <span asp-validation-for="BookId" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="IssuedAt" class="form-label"></label>
+                <input asp-for="IssuedAt" class="form-control" />
+                <span asp-validation-for="IssuedAt" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="DueAt" class="form-label"></label>
+                <input asp-for="DueAt" class="form-control" />
+                <span asp-validation-for="DueAt" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ReturnedAt" class="form-label"></label>
+                <input asp-for="ReturnedAt" class="form-control" />
+                <span asp-validation-for="ReturnedAt" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
