@@ -1,0 +1,67 @@
+﻿@model Lab1.Models.Book
+
+@{
+    ViewData["Title"] = "Book Details";
+}
+
+<h1>Book Details</h1>
+
+<div>
+    <h4>Book</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Title</dt>
+        <dd class="col-sm-9">@Model.Title</dd>
+        <dt class="col-sm-3">Author</dt>
+        <dd class="col-sm-9">@Model.Author</dd>
+        <dt class="col-sm-3">ISBN</dt>
+        <dd class="col-sm-9">@Model.Isbn</dd>
+        <dt class="col-sm-3">Genre</dt>
+        <dd class="col-sm-9">@Model.Genre</dd>
+        <dt class="col-sm-3">Publish Year</dt>
+        <dd class="col-sm-9">@Model.PublishYear</dd>
+        <dt class="col-sm-3">Total Copies</dt>
+        <dd class="col-sm-9">@Model.TotalCopies</dd>
+        <dt class="col-sm-3">Available Copies</dt>
+        <dd class="col-sm-9">@Model.AvailableCopies</dd>
+    </dl>
+</div>
+
+<h5>Loan History</h5>
+@if (Model.Loans.Any())
+{
+    <table class="table table-sm table-bordered">
+        <thead>
+            <tr>
+                <th>Reader</th>
+                <th>Issued At</th>
+                <th>Due At</th>
+                <th>Returned At</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var loan in Model.Loans.OrderByDescending(x => x.IssuedAt))
+        {
+            <tr>
+                <td>@loan.Reader?.FullName</td>
+                <td>@loan.IssuedAt.ToString("yyyy-MM-dd")</td>
+                <td>@loan.DueAt.ToString("yyyy-MM-dd")</td>
+                <td>@loan.ReturnedAt?.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No loans yet.</p>
+}
+
+<div>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <text> | </text>
+    }
+    <a asp-action="Index">Back to List</a>
+</div>

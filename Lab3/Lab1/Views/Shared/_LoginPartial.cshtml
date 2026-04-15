@@ -1,0 +1,23 @@
+<ul class="navbar-nav align-items-sm-center">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <li class="nav-item me-sm-3">
+            <span class="navbar-text text-dark">Signed in as @User.Identity?.Name</span>
+        </li>
+        <li class="nav-item">
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+        </li>
+    }
+</ul>
