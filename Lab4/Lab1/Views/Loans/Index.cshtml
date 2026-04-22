@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Lab1.Models.Loan>
+@using Lab1.Models
+
+@{
+    ViewData["Title"] = "Loans";
+}
+
+<h1>Loans</h1>
+
+<p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-action="Create" class="btn btn-primary">Create New Loan</a>
+    }
+</p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Reader</th>
+            <th>Book</th>
+            <th>Issued At</th>
+            <th>Due At</th>
+            <th>Returned At</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        var computedStatus = item.ReturnedAt.HasValue
+            ? LoanStatus.Returned
+            : item.DueAt.Date < DateTime.Today
+                ? LoanStatus.Overdue
+                : LoanStatus.Active;
+        var badgeClass = computedStatus switch
+        {
+            LoanStatus.Active => "bg-primary",
+            LoanStatus.Returned => "bg-success",
+            _ => "bg-danger"
+        };
+
+        <tr>
+            <td>@item.Reader?.FullName</td>
+            <td>@item.Book?.Title</td>
+            <td>@item.IssuedAt.ToString("yyyy-MM-dd")</td>
+            <td>@item.DueAt.ToString("yyyy-MM-dd")</td>
+            <td>@item.ReturnedAt?.ToString("yyyy-MM-dd")</td>
+            <td><span class="badge @badgeClass">@computedStatus</span></td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <text> | </text><a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <text> | </text><a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

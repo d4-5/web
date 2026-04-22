@@ -1,0 +1,52 @@
+@model ChatMessageViewModel
+
+@{
+    var currentUserId = ViewData["CurrentUserId"] as string;
+    var isOwnMessage = string.Equals(Model.SenderId, currentUserId, StringComparison.Ordinal);
+    var isImage = !string.IsNullOrWhiteSpace(Model.AttachmentContentType) &&
+                  Model.AttachmentContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+}
+
+<article class="chat-message @(isOwnMessage ? "chat-message--own" : null)"
+         data-message-id="@Model.Id"
+         data-sender-id="@Model.SenderId"
+         data-recipient-id="@Model.RecipientId">
+    <div class="chat-message__meta">
+        <span class="chat-message__author">@Model.SenderName</span>
+        <span class="chat-message__scope">
+            @(Model.IsPrivate
+                ? $"Приватно для {Model.RecipientName}"
+                : "Загальний чат")
+        </span>
+        <time datetime="@Model.SentAt.ToString("O")">@Model.SentAtDisplay</time>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Text))
+    {
+        <div class="chat-message__text">@Model.Text</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.AttachmentUrl) && !string.IsNullOrWhiteSpace(Model.AttachmentFileName))
+    {
+        <div class="chat-message__attachment">
+            @if (isImage)
+            {
+                <a href="@Model.AttachmentUrl" target="_blank" rel="noopener noreferrer">
+                    <img class="chat-message__image" src="@Model.AttachmentUrl" alt="@Model.AttachmentFileName" />
+                </a>
+            }
+
+            <a class="chat-message__attachment-link"
+               href="@(Model.AttachmentDownloadUrl ?? Model.AttachmentUrl)"
+               target="_blank"
+               rel="noopener noreferrer">
+                @Model.AttachmentFileName
+            </a>
+
+            @if (!string.IsNullOrWhiteSpace(Model.AttachmentSizeDisplay))
+            {
+                <span class="chat-message__attachment-size">@Model.AttachmentSizeDisplay</span>
+            }
+        </div>
+    }
+</article>

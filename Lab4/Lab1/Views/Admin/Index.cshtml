@@ -1,0 +1,74 @@
+@model AdminIndexViewModel
+
+@{
+    ViewData["Title"] = "Admin panel";
+}
+
+<h1>Керування користувачами</h1>
+
+@if (TempData["AdminSuccess"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (TempData["AdminError"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<p class="text-muted">
+    У цьому розділі адміністратор може переглядати зареєстрованих користувачів, змінювати їх ролі та видаляти акаунти.
+</p>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Дата реєстрації</th>
+            <th>Поточна роль</th>
+            <th>Нова роль</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>
+                    @user.Email
+                    @if (user.IsCurrentUser)
+                    {
+                        <span class="badge bg-secondary ms-2">Ви</span>
+                    }
+                </td>
+                <td>@user.RegisteredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    @foreach (var role in user.Roles)
+                    {
+                        <span class="badge bg-primary me-1">@role</span>
+                    }
+                </td>
+                <td>
+                    <form asp-action="UpdateRole" method="post" class="d-flex gap-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <select name="role" class="form-select form-select-sm" @(user.IsCurrentUser ? "disabled" : null)>
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                <option value="@role" selected="@(role == user.SelectedRole ? "selected" : null)">@role</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-primary" @(user.IsCurrentUser ? "disabled" : null)>Зберегти</button>
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити цього користувача?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger" @(user.IsCurrentUser ? "disabled" : null)>Видалити</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

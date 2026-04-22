@@ -1,0 +1,7 @@
+namespace Lab1.ViewModels;
+
+public class ChatUserViewModel
+{
+    public string UserId { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+}

@@ -1,0 +1,150 @@
+@model ChatIndexViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Chat";
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">SignalR Web Chat</h1>
+    </div>
+    <div class="chat-status" id="chatConnectionStatus">Підготовка з'єднання…</div>
+</div>
+
+<div class="chat-layout">
+    <aside class="chat-panel">
+        <div class="chat-panel__header">
+            <h2 class="h5 mb-1">Користувачі</h2>
+            <p class="text-muted mb-0">Оберіть співрозмовника для приватного листування.</p>
+        </div>
+        <div class="chat-panel__body">
+            @if (Model.Users.Count == 0)
+            {
+                <div class="chat-empty-state">Інші зареєстровані користувачі з'являться тут.</div>
+            }
+            else
+            {
+                <div class="chat-users">
+                    @foreach (var user in Model.Users)
+                    {
+                        var isSelected = user.UserId == Model.SelectedUserId;
+                        <a asp-action="Index"
+                           asp-route-selectedUserId="@user.UserId"
+                           class="chat-user-link @(isSelected ? "is-active" : null)">
+                            <div class="fw-semibold">@user.DisplayName</div>
+                            <div class="text-muted small">Приватний чат</div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </aside>
+
+    <section class="chat-stack">
+        <div class="chat-panel">
+            <div class="chat-panel__header">
+                <h2 class="h5 mb-1">Загальний чат</h2>
+                <p class="text-muted mb-0">Повідомлення бачать усі авторизовані користувачі.</p>
+            </div>
+            <div class="chat-panel__body">
+                <div class="chat-messages mb-4" id="generalMessages">
+                    @if (Model.GeneralMessages.Count == 0)
+                    {
+                        <div class="chat-empty-state">Поки що немає загальних повідомлень.</div>
+                    }
+                    else
+                    {
+                        @foreach (var message in Model.GeneralMessages)
+                        {
+                            @await Html.PartialAsync("_ChatMessage", message, new ViewDataDictionary(ViewData) { ["CurrentUserId"] = Model.CurrentUserId })
+                        }
+                    }
+                </div>
+
+                <form asp-action="SendMessage" class="chat-form chat-send-form" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div>
+                        <label class="form-label" for="generalText">Повідомлення</label>
+                        <textarea class="form-control" id="generalText" name="Text" rows="3" maxlength="4000" placeholder="Напишіть повідомлення для всіх користувачів"></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" for="generalAttachment">Зображення або файл</label>
+                        <input class="form-control" id="generalAttachment" type="file" name="Attachment" />
+                    </div>
+                    <div class="chat-form__actions">
+                        <button type="submit" class="btn btn-primary">Надіслати в загальний чат</button>
+                        <div class="chat-form__status" data-form-status></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="chat-panel">
+            <div class="chat-panel__header">
+                <h2 class="h5 mb-1">Приватний чат</h2>
+                <p class="text-muted mb-0">
+                    @if (Model.SelectedUserId == null)
+                    {
+                        <span>Оберіть користувача ліворуч, щоб почати приватну розмову.</span>
+                    }
+                    else
+                    {
+                        <span>Поточний співрозмовник: <strong>@Model.SelectedUserName</strong></span>
+                    }
+                </p>
+            </div>
+            <div class="chat-panel__body">
+                @if (Model.SelectedUserId == null)
+                {
+                    <div class="chat-empty-state">Приватні повідомлення з'являться після вибору співрозмовника.</div>
+                }
+                else
+                {
+                    <div class="chat-messages mb-4" id="privateMessages">
+                        @if (Model.PrivateMessages.Count == 0)
+                        {
+                            <div class="chat-empty-state">Почніть розмову першим.</div>
+                        }
+                        else
+                        {
+                            @foreach (var message in Model.PrivateMessages)
+                            {
+                                @await Html.PartialAsync("_ChatMessage", message, new ViewDataDictionary(ViewData) { ["CurrentUserId"] = Model.CurrentUserId })
+                            }
+                        }
+                    </div>
+
+                    <form asp-action="SendMessage" class="chat-form chat-send-form" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="RecipientUserId" value="@Model.SelectedUserId" />
+                        <div>
+                            <label class="form-label" for="privateText">Приватне повідомлення</label>
+                            <textarea class="form-control" id="privateText" name="Text" rows="3" maxlength="4000" placeholder="Напишіть повідомлення для @Model.SelectedUserName"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" for="privateAttachment">Зображення або файл</label>
+                            <input class="form-control" id="privateAttachment" type="file" name="Attachment" />
+                        </div>
+                        <div class="chat-form__actions">
+                            <button type="submit" class="btn btn-success">Надіслати приватно</button>
+                            <div class="chat-form__status" data-form-status></div>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@latest/dist/browser/signalr.min.js"></script>
+    <script>
+        window.chatPageConfig = {
+            currentUserId: @Html.Raw(JsonSerializer.Serialize(Model.CurrentUserId)),
+            selectedUserId: @Html.Raw(JsonSerializer.Serialize(Model.SelectedUserId)),
+            chatHubUrl: @Html.Raw(JsonSerializer.Serialize(Url.Content("~/hubs/chat")))
+        };
+    </script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}
